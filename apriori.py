@@ -1,30 +1,31 @@
 
 import os
 import pandas as pd
-from tqdm import tqdm
 from apyori import apriori
 from preprocess import fetch_user_c1_dict
 
 
-def run_apriori(min_support, min_confidence, max_length=3):
-    apriori_input = []
-
-    file_path = r"C:\Users\Jason\Desktop\巴哈姆特\RS\Recommendation_System\apriori_result.xlsx"
+def run_apriori(min_support=0.01, min_confidence=0.5, max_length=3):
+    current_path = os.getcwd()
+    file_path = os.path.join(current_path, 'result\\apriori_result.xlsx')
 
     if os.path.isfile(file_path):
-        print(">> output of apriori already exists!")
+        print('>> apriori result already exists!')
     else:
-        print(">> start running apriori method")
-
-        acg = pd.read_csv(r"C:\Users\Jason\Desktop\巴哈姆特\data\acg.csv")
+        print('>> start running apriori algorithm')
+        # use dataset 'acg' to generate apriori result
+        data_path = os.path.join(current_path, 'data\\acg.csv')
+        acg = pd.read_csv(data_path)
         acg_gather = acg[acg[' action'] == 'gather'].drop([' c2', ' action', ' score', ' ctime'], axis=1)
 
         user_c1_dict = fetch_user_c1_dict(acg_gather)
 
         print('>> creating input for apriori')
         g = acg_gather.groupby('userid')
-        for user, c1_of_user in tqdm(g):
-            apriori_input.append(list(set(c1_of_user[" c1"].values)))
+        apriori_input = g.apply(lambda x: list(set(x[" c1"].values))).tolist()
+
+        # for user, c1_of_user in tqdm(g):
+        #     apriori_input.append(list(set(c1_of_user[" c1"].values)))
 
         print('>> start running apriori, this method usually takes a few minutes')
         association_rules = apriori(apriori_input,
@@ -56,6 +57,6 @@ def run_apriori(min_support, min_confidence, max_length=3):
         }
 
         data = pd.DataFrame(df).sort_values(by='confidence', ascending=False)
-        data.to_excel('apriori_result.xlsx', index=False)
+        data.to_excel('result\\apriori_result.xlsx', index=False)
 
         return user_c1_dict

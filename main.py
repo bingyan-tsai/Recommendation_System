@@ -6,13 +6,26 @@ from collaborative_filtering import fetch_similar_users, matrix_transformation, 
 
 
 def recommendation_system(method='apriori'):
+    """
+    apriori: generate prediction based on association rules
+    collaborative_filtering: generate prediction based on similar user's preference(c1)
+    """
     if method == 'apriori':
+        # min_support, min_confidence
         run_apriori(0.01, 0.5)
     elif method == 'collaborative_filtering':
+        # num_c1, num_user, picked_user
         run_co_filtering(100, 50, 20)
 
 
 def run_co_filtering(n_c1, n_user, picked_user, n_sim_user=10, threshold=0.01):
+    """
+    n_c1: number of c1
+    n_user: number of user
+    picked_user: who to generate recommendation
+    n_sim_user: number of picked_user's similar user
+    threshold: control the cosine similarity of similar user
+    """
     warnings.filterwarnings("ignore")
     acg_review, agg_reviews_c1_n, agg_reviews_user_n = group_dataset(n_c1, n_user)
     ui_matrix = fetch_user_item_matrix(acg_review, agg_reviews_c1_n, agg_reviews_user_n)
@@ -25,5 +38,5 @@ def run_co_filtering(n_c1, n_user, picked_user, n_sim_user=10, threshold=0.01):
 
 if __name__ == '__main__':
     print('>> pre-flight')
-    recommendation_system(method='apriori')
+    recommendation_system(method='collaborative_filtering')
     print('>> end-flight')
